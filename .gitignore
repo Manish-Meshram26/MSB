@@ -20,6 +20,9 @@ Release/
 *.dll
 *.log
 
+# Exception: pre-built release binary
+!dist/MSBBypass.exe
+
 # MSBBypass embedded payload (built artifact, not source)
 MSBBypass/payload.dll
 

@@ -10,12 +10,11 @@
 
 | # | Vulnerability | Severity | Tool Needed? |
 |---|---|---|---|
-| 1 | RemotePC HelpDesk completely undetected by MSB | **Critical** | ❌ None |
-| 2 | Process hiding via inline hooking bypasses all 3 detection layers | **Critical** | ✅ This tool |
-| 3 | No integrity checks on ntdll.dll code section | **High** | — |
-| 4 | No DLL injection detection | **High** | — |
-| 5 | Process scanning runs client-side (hookable), not from the Service | **High** | — |
-| 6 | Name-based blacklist trivially bypassed by renaming executables | **Medium** | ❌ None |
+| 1 | Process hiding via inline hooking bypasses all 3 detection layers | **Critical** | ✅ This tool |
+| 2 | No integrity checks on ntdll.dll code section | **High** | — |
+| 3 | No DLL injection detection | **High** | — |
+| 4 | Process scanning runs client-side (hookable), not from the Service | **High** | — |
+| 5 | Name-based blacklist trivially bypassed by renaming executables | **Medium** | ❌ None |
 
 ## What This Tool Does
 
@@ -58,22 +57,30 @@ MSBBypass.exe (run as admin before MSB)
 ## Prerequisites
 
 - **Windows 10/11 x64**
-- **Visual Studio 2022** with "Desktop development with C++" workload
 - **RemotePC** installed (the software being hidden)
 - **MSB** installed (the software being tested)
 
-## Build Instructions
+## Quick Start (No Build Required)
 
-### Option A: Visual Studio (Recommended)
+1. **Disable antivirus** (Windows Defender real-time protection OFF)
+2. **Right-click** `dist/MSBBypass.exe` → **Run as administrator**
+3. **Start MSB** (Mettl Secure Browser)
+4. Enter the exam — MSB will not detect RemotePC
 
-#### Step 1: Build the DLL
+That's it. The tool auto-configures everything.
+
+## Build from Source (Optional)
+
+Only needed if you want to modify the tool. Requires **Visual Studio 2022** with "Desktop development with C++" workload.
+
+### Step 1: Build the DLL
 
 1. Open `TaskManagerHack.sln` in Visual Studio 2022
 2. If prompted to retarget, click **Retarget All**
 3. Set dropdowns: **Debug** | **x64**
 4. `Ctrl+Shift+B` → confirm `Build: 1 succeeded`
 
-#### Step 2: Create the MSBBypass project
+### Step 2: Create the MSBBypass project
 
 1. **File → New → Project → Console App** (C++, Windows, Console)
 2. Name: `MSBBypass`, Location: this repo's root folder
@@ -85,35 +92,24 @@ MSBBypass.exe (run as admin before MSB)
    - `Resource.rc`
 6. Set dropdowns: **Debug** | **x64**
 
-#### Step 3: Copy the DLL payload
-
-Copy the built DLL into the MSBBypass folder as `payload.dll`:
+### Step 3: Copy the DLL payload
 
 ```powershell
 Copy-Item "x64\Debug\TaskManagerHack.dll" "MSBBypass\payload.dll" -Force
 ```
 
-#### Step 4: Build MSBBypass
+### Step 4: Build MSBBypass
 
 1. `Ctrl+Shift+B` → confirm `Build: 1 succeeded`
-2. Output: `x64\Debug\MSBBypass.exe` (or `msb\x64\Debug\msb.exe` depending on project name)
-
-### Option B: Command Line
-
-Open **"x64 Native Tools Command Prompt for VS 2022"** from Start Menu:
-
-```bat
-cd path\to\this\repo
-build.bat
-```
+2. Output is in `x64\Debug\`
 
 ## Usage
 
-### Test 1: MSB Bypass (Full)
+### MSB Bypass Test
 
-1. **Disable antivirus** (Windows Defender real-time + McAfee)
+1. **Disable antivirus** (Windows Defender real-time + McAfee if present)
 2. Make sure **RemotePC** is installed and running
-3. Run `MSBBypass.exe` **as Administrator** (right-click → Run as administrator)
+3. Run `dist/MSBBypass.exe` **as Administrator** (right-click → Run as administrator)
 4. **Start MSB** (Mettl Secure Browser)
 5. Enter the exam — MSB should not detect RemotePC
 6. When done: press `Ctrl+C` in the tool, close MSB, re-enable antivirus
@@ -141,16 +137,13 @@ Expected output:
   [+] SafeExamBrowser.Client.exe (PID 9012) - hooked
 ```
 
-### Test 2: HelpDesk (No Tool Needed)
-
-1. Install **RemotePC HelpDesk** (session-based remote access)
-2. Start MSB and enter an exam
-3. Observe: MSB does **not** detect HelpDesk at all
-4. **No bypass tool required** — this is a blacklist gap
 
 ## Project Structure
 
 ```
+├── dist/
+│   └── MSBBypass.exe         # Pre-built tool — just run this as admin
+│
 ├── TaskManagerHack/
 │   ├── dllmain.cpp          # The hook DLL (inline hooks on NtQuerySystemInformation + GetSystemMetrics)
 │   ├── framework.h          # Windows headers
@@ -183,9 +176,7 @@ if (!diskBytes.SequenceEqual(memBytes))
     AbortExam("System integrity violation detected");
 ```
 
-2. **Add HelpDesk to the blacklist**: MSB blocks `RemotePCService.exe` but completely misses `RPCHelpDeskService.exe`, `Helpdesk.exe`, and 30+ other HelpDesk executables.
-
-3. **Move process scanning to the Windows Service**: `SafeExamBrowser.Service.exe` runs as SYSTEM in a separate process. Scanning from there makes injection much harder.
+2. **Move process scanning to the Windows Service**: `SafeExamBrowser.Service.exe` runs as SYSTEM in a separate process. Scanning from there makes injection much harder.
 
 ### P1 — High
 
