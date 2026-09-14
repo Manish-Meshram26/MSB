@@ -1,0 +1,31 @@
+# Visual Studio
+.vs/
+x64/
+Debug/
+Release/
+*.user
+*.suo
+*.db
+*.opendb
+*.ipch
+
+# Build outputs
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+*.log
+
+# MSBBypass embedded payload (built artifact, not source)
+MSBBypass/payload.dll
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Old injector project (user's local)
+msb/
